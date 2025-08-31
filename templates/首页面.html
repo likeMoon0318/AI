@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI计算方法教学平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        accent: '#7C3AED',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-custom {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .hover-scale {
+                transition: transform 0.3s ease;
+            }
+            .hover-scale:hover {
+                transform: scale(1.03);
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-light text-dark antialiased">
+    <!-- 导航栏 -->
+    <header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300 bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white mr-3">
+                            <i class="fa fa-calculator text-xl"></i>
+                        </div>
+                        <span class="text-xl font-bold text-primary">AI<span class="text-dark">计算方法</span></span>
+                    </a>
+                    
+                    <nav class="hidden md:ml-10 md:flex space-x-8">
+                        <a href="#home" class="text-dark hover:text-primary font-medium transition-custom border-b-2 border-primary">首页</a>
+                        <a href="#features" class="text-dark hover:text-primary font-medium transition-custom">核心模块</a>
+                        <a href="#demo" class="text-dark hover:text-primary font-medium transition-custom">功能演示</a>
+                        <a href="#about" class="text-dark hover:text-primary font-medium transition-custom">关于我们</a>
+                    </nav>
+                </div>
+                
+                <div class="flex items-center">
+                    <a href="{{ url_for('login') }}" class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom mr-3">
+                        <i class="fa fa-user-circle mr-2"></i>登录
+                    </a>
+                    <a href="{{ url_for('register') }}" class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent/90 transition-custom">
+                        <i class="fa fa-user-plus mr-2"></i>注册
+                    </a>
+                    
+                    <button id="mobile-menu-button" class="md:hidden flex items-center justify-center p-2 rounded-md text-dark hover:text-primary hover:bg-gray-100 transition-custom">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white shadow-lg absolute w-full">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="block px-3 py-2 rounded-md text-base font-medium text-primary bg-primary/10">首页</a>
+                <a href="#features" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50">核心模块</a>
+                <a href="#demo" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50">功能演示</a>
+                <a href="#about" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50">关于我们</a>
+                <div class="flex space-x-2 mt-4 px-3">
+                    <a href="{{ url_for('login') }}" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom">
+                        <i class="fa fa-user-circle mr-2"></i>登录
+                    </a>
+                    <a href="{{ url_for('register') }}" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent/90 transition-custom">
+                        <i class="fa fa-user-plus mr-2"></i>注册
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section id="home" class="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="w-full md:w-1/2 md:pr-12">
+                    <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold leading-tight text-dark mb-4">
+                        AI赋能的<span class="text-primary">计算方法</span><br>智能教学平台
+                    </h1>
+                    <p class="text-lg text-gray-600 mb-8 max-w-lg">
+                        我们的平台利用人工智能技术，为《计算方法》课程提供全方位的教学支持，包括学情诊断、代码实践、作业批改和智能评价，帮助学生更高效地学习，教师更科学地教学。
+                    </p>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <a href="#features" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom shadow-lg shadow-primary/20">
+                            了解核心模块
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                        <a href="{{ url_for('login') }}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-dark bg-white hover:bg-gray-50 transition-custom shadow-md">
+                            立即体验
+                        </a>
+                    </div>
+                    
+                    <div class="mt-12 flex items-center">
+                        <div class="flex -space-x-2">
+                            <img class="h-10 w-10 rounded-full ring-2 ring-white" src="https://picsum.photos/id/1005/100/100" alt="学生头像">
+                            <img class="h-10 w-10 rounded-full ring-2 ring-white" src="https://picsum.photos/id/1012/100/100" alt="学生头像">
+                            <img class="h-10 w-10 rounded-full ring-2 ring-white" src="https://picsum.photos/id/1025/100/100" alt="学生头像">
+                            <img class="h-10 w-10 rounded-full ring-2 ring-white" src="https://picsum.photos/id/1074/100/100" alt="学生头像">
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">
+                                <span class="font-medium text-dark">1000+</span> 学生已使用
+                                <span class="text-yellow-500">
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star-half-o"></i>
+                                </span>
+                                <span class="text-gray-600 ml-1">(4.8/5)</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="w-full md:w-1/2 mt-12 md:mt-0">
+                    <div class="relative">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-30"></div>
+                        <div class="relative bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <img src="https://picsum.photos/id/3/600/400" alt="AI教学平台界面" class="w-full h-auto">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                                <div class="p-6">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                            <i class="fa fa-robot text-xl"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h3 class="text-white font-semibold text-lg">AI智能分析</h3>
+                                            <p class="text-white/80 text-sm">个性化学习路径规划</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 数据统计 -->
+    <section class="py-12 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="text-center p-6 rounded-xl bg-primary/5 hover-scale">
+                    <div class="text-4xl font-bold text-primary mb-2">98%</div>
+                    <div class="text-gray-600">学生满意度</div>
+                </div>
+                <div class="text-center p-6 rounded-xl bg-secondary/5 hover-scale">
+                    <div class="text-4xl font-bold text-secondary mb-2">45%</div>
+                    <div class="text-gray-600">学习效率提升</div>
+                </div>
+                <div class="text-center p-6 rounded-xl bg-accent/5 hover-scale">
+                    <div class="text-4xl font-bold text-accent mb-2">100+</div>
+                    <div class="text-gray-600">编程练习</div>
+                </div>
+                <div class="text-center p-6 rounded-xl bg-dark/5 hover-scale">
+                    <div class="text-4xl font-bold text-dark mb-2">24/7</div>
+                    <div class="text-gray-600">智能辅导</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心模块 -->
+    <section id="features" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">四大核心模块</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    我们的AI赋能型教学平台围绕《计算方法》课程设计了四大核心模块，全面提升教学质量和学生学习体验
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- 模块1 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-scale">
+                    <div class="h-48 bg-primary/10 relative">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fa fa-bar-chart text-7xl text-primary/30"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-primary to-transparent">
+                            <h3 class="text-white font-bold text-xl">AI学情诊断</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">
+                            精准分析学生学习情况，识别知识薄弱点，为每个学生生成个性化学习路径。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">学习行为分析</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">知识图谱构建</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">个性化学习推荐</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="inline-flex items-center text-primary font-medium hover:text-primary/80 transition-custom" onclick="showModal('aiDiagnosisModal')">
+                            深入了解学习行为分析技术
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 模块2 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-scale">
+                    <div class="h-48 bg-secondary/10 relative">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fa fa-code text-7xl text-secondary/30"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-secondary to-transparent">
+                            <h3 class="text-white font-bold text-xl">AI代码实践</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">
+                            提供互动式编程练习环境，实时检测代码错误，提供智能调试建议。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">在线编码环境</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">实时代码检查</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">智能调试助手</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="inline-flex items-center text-secondary font-medium hover:text-secondary/80 transition-custom" onclick="showModal('aiCodePracticeModal')">
+                            探索智能调试技术的工作原理
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 模块3 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-scale">
+                    <div class="h-48 bg-accent/10 relative">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fa fa-pencil-square-o text-7xl text-accent/30"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-accent to-transparent">
+                            <h3 class="text-white font-bold text-xl">AI作业批改</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">
+                            自动批改编程作业，分析代码质量，提供详细反馈和改进建议。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">自动作业评分</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">代码质量分析</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">个性化练习推荐</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="inline-flex items-center text-accent font-medium hover:text-accent/80 transition-custom" onclick="showModal('aiAssignmentGradingModal')">
+                            了解代码质量分析的评估标准
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 模块4 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-scale">
+                    <div class="h-48 bg-dark/10 relative">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fa fa-line-chart text-7xl text-dark/30"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-dark to-transparent">
+                            <h3 class="text-white font-bold text-xl">AI智能评价</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">
+                            全面评估学生学习过程，提供多维度评价报告，辅助教师做出科学教学决策。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">学习过程跟踪</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">多维度评价</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check text-secondary mr-2"></i>
+                                <span class="text-gray-700">教学决策支持</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="inline-flex items-center text-dark font-medium hover:text-dark/80 transition-custom" onclick="showModal('aiIntelligentEvaluationModal')">
+                            查看多维度评价体系的详细构成
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 学情诊断演示 -->
+    <section id="demo" class="py-20 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">AI学情诊断演示</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    通过我们的AI学情诊断系统，教师可以实时了解学生的学习状况，系统会自动分析学生的知识掌握情况，并提供个性化的学习建议
+                </p>
+            </div>
+            
+            <div class="bg-gray-50 rounded-2xl shadow-xl overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-5">
+                    <div class="lg:col-span-2 bg-gradient-to-br from-primary to-accent p-8 text-white">
+                        <h3 class="text-2xl font-bold mb-6">学情诊断报告</h3>
+                        <p class="mb-6 text-white/90">
+                            基于学生的作业、测试和练习数据，AI系统生成详细的学情分析报告，帮助教师了解每个学生的学习状况。
+                        </p>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium">数值计算方法</span>
+                                    <span>85%</span>
+                                </div>
+                                <div class="w-full bg-white/20 rounded-full h-2.5">
+                                    <div class="bg-white h-2.5 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium">插值与拟合</span>
+                                    <span>72%</span>
+                                </div>
+                                <div class="w-full bg-white/20 rounded-full h-2.5">
+                                    <div class="bg-white h-2.5 rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium">数值积分</span>
+                                    <span>68%</span>
+                                </div>
+                                <div class="w-full bg-white/20 rounded-full h-2.5">
+                                    <div class="bg-white h-2.5 rounded-full" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium">常微分方程数值解</span>
+                                    <span>91%</span>
+                                </div>
+                                <div class="w-full bg-white/20 rounded-full h-2.5">
+                                    <div class="bg-white h-2.5 rounded-full" style="width: 91%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <a href="#" class="inline-flex items-center px-4 py-2 border border-white text-sm font-medium rounded-md text-primary bg-white hover:bg-white/90 transition-custom" onclick="showModal('fullReportModal')">
+                                查看完整报告
+                                <i class="fa fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-3 p-8">
+                        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h4 class="text-lg font-semibold mb-4">知识掌握情况</h4>
+                            <div class="h-64">
+                                <canvas id="masteryChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h4 class="text-lg font-semibold mb-4">学习进度</h4>
+                                <div class="h-40">
+                                    <canvas id="progressChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h4 class="text-lg font-semibold mb-4">推荐学习资源</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex items-center">
+                                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mr-3">
+                                            <i class="fa fa-video-camera"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">拉格朗日插值法详解</p>
+                                            <p class="text-sm text-gray-500">15分钟视频 · 基础</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center">
+                                        <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary mr-3">
+                                            <i class="fa fa-file-text-o"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">牛顿-柯特斯公式推导</p>
+                                            <p class="text-sm text-gray-500">10页文档 · 中级</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center">
+                                        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent mr-3">
+                                            <i class="fa fa-code"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">高斯积分法编程实践</p>
+                                            <p class="text-sm text-gray-500">互动练习 · 高级</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 代码实践演示 -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">AI代码实践与智能调试</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    我们的智能代码编辑器提供实时语法检查和智能调试建议，帮助学生更快地掌握计算方法编程技能
+                </p>
+            </div>
+            
+            <div class="bg-dark rounded-2xl shadow-xl overflow-hidden">
+                <div class="p-4 bg-dark/80 flex items-center border-b border-gray-700">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <div class="ml-4 text-gray-400 text-sm">拉格朗日插值.py</div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2">
+                    <div class="p-6">
+                        <pre class="text-gray-300 font-mono text-sm overflow-x-auto"><span class="text-green-400">def</span> <span class="text-yellow-300">lagrange_interpolation</span>(<span class="text-blue-300">x_values</span>, <span class="text-blue-300">y_values</span>, <span class="text-blue-300">x</span>):
+    <span class="text-gray-400"># 检查输入是否有效</span>
+    <span class="text-green-400">if</span> <span class="text-blue-300">len</span>(<span class="text-blue-300">x_values</span>) != <span class="text-blue-300">len</span>(<span class="text-blue-300">y_values</span>):
+        <span class="text-green-400">raise</span> <span class="text-blue-300">ValueError</span>(<span class="text-red-300">"x和y的值必须数量相同"</span>)
+        
+    <span class="text-blue-300">n</span> = <span class="text-blue-300">len</span>(<span class="text-blue-300">x_values</span>)
+    <span class="text-blue-300">result</span> = <span class="text-blue-300">0.0</span>
+    
+    <span class="text-green-400">for</span> <span class="text-blue-300">i</span> <span class="text-green-400">in</span> <span class="text-blue-300">range</span>(<span class="text-blue-300">n</span>):
+        <span class="text-blue-300">term</span> = <span class="text-blue-300">y_values</span>[<span class="text-blue-300">i</span>]
+        
+        <span class="text-green-400">for</span> <span class="text-blue-300">j</span> <span class="text-green-400">in</span> <span class="text-blue-300">range</span>(<span class="text-blue-300">n</span>):
+            <span class="text-green-400">if</span> <span class="text-blue-300">i</span> != <span class="text-blue-300">j</span>:
+                <span class="text-blue-300">term</span> *= (<span class="text-blue-300">x</span> - <span class="text-blue-300">x_values</span>[<span class="text-blue-300">j</span>]) / (<span class="text-blue-300">x_values</span>[<span class="text-blue-300">i</span>] - <span class="text-blue-300">x_values</span>[<span class="text-blue-300">j</span>])
+        
+        <span class="text-blue-300">result</span> += <span class="text-blue-300">term</span>
+    
+    <span class="text-green-400">return</span> <span class="text-blue-300">result</span>
+
+<span class="text-gray-400"># 测试数据</span>
+<span class="text-blue-300">x_values</span> = [<span class="text-blue-300">1.0</span>, <span class="text-blue-300">2.0</span>, <span class="text-blue-300">3.0</span>]
+<span class="text-blue-300">y_values</span> = [<span class="text-blue-300">1.0</span>, <span class="text-blue-300">4.0</span>, <span class="text-blue-300">9.0</span>]
+<span class="text-blue-300">x</span> = <span class="text-blue-300">2.5</span>
+
+<span class="text-blue-300">result</span> = <span class="text-yellow-300">lagrange_interpolation</span>(<span class="text-blue-300">x_values</span>, <span class="text-blue-300">y_values</span>, <span class="text-blue-300">x</span>)
+<span class="text-green-400">print</span>(<span class="text-red-300">f"插值结果: {result}"</span>)
+
+<span class="text-gray-400"># 可视化插值结果</span>
+<span class="text-green-400">import</span> <span class="text-blue-300">matplotlib.pyplot</span> <span class="text-green-400">as</span> <span class="text-blue-300">plt</span>
+<span class="text-green-400">import</span> <span class="text-blue-300">numpy</span> <span class="text-green-400">as</span> <span class="text-blue-300">np</span>
+
+<span class="text-blue-300">x_plot</span> = <span class="text-blue-300">np.linspace</span>(<span class="text-blue-300">0.0</span>, <span class="text-blue-300">4.0</span>, <span class="text-blue-300">100</span>)
+<span class="text-blue-300">y_plot</span> = [<span class="text-yellow-300">lagrange_interpolation</span>(<span class="text-blue-300">x_values</span>, <span class="text-blue-300">y_values</span>, <span class="text-blue-300">xi</span>) <span class="text-green-400">for</span> <span class="text-blue-300">xi</span> <span class="text-green-400">in</span> <span class="text-blue-300">x_plot</span>]</pre>
+                    </div>
+                    
+                    <div class="bg-white p-6">
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-lg mb-3">代码分析</h4>
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fa fa-info-circle text-yellow-500"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            <strong>建议:</strong> 可以添加对输入点是否重复的检查，避免除零错误
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fa fa-check-circle text-green-500"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-green-700">
+                                            <strong>好的做法:</strong> 代码实现正确，包含了输入验证和结果可视化
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-lg mb-3">运行结果</h4>
+                            <div class="bg-gray-100 rounded-lg p-4 h-32 overflow-y-auto">
+                                <pre class="text-gray-800 font-mono text-sm">插值结果: 6.25
+
+Process finished with exit code 0</pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-lg mb-3">学习建议</h4>
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <i class="fa fa-lightbulb-o text-primary mt-1 mr-3"></i>
+                                    <span class="text-sm">尝试添加对输入点是否重复的检查，以提高代码的健壮性</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-lightbulb-o text-primary mt-1 mr-3"></i>
+                                    <span class="text-sm">思考如何优化算法性能，特别是在处理大量数据点时</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-lightbulb-o text-primary mt-1 mr-3"></i>
+                                    <span class="text-sm">研究牛顿插值法，并比较与拉格朗日插值法的优缺点</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用场景 -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">应用场景</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    我们的AI赋能型教学平台可以应用于多种教学场景，帮助教师提高教学效率，提升学生学习体验
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6">
+                        <i class="fa fa-university text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">高校教学</h3>
+                    <p class="text-gray-600 mb-4">
+                        为高校《计算方法》课程提供全方位教学支持，包括课堂教学辅助、课后作业批改、考试评估等。
+                    </p>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">大班授课辅助</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">个性化学习支持</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">课程考核优化</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="w-14 h-14 rounded-full bg-secondary/10 flex items-center justify-center text-secondary mb-6">
+                        <i class="fa fa-users text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">在线教育</h3>
+                    <p class="text-gray-600 mb-4">
+                        为在线教育平台提供AI教学解决方案，打造沉浸式学习体验，提高学生学习效果和留存率。
+                    </p>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">自适应学习路径</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">智能辅导系统</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">学习社区建设</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-6">
+                        <i class="fa fa-briefcase text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">企业培训</h3>
+                    <p class="text-gray-600 mb-4">
+                        为企业提供计算方法相关技能培训，快速提升员工数值计算和编程能力，满足企业技术需求。
+                    </p>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">岗位技能提升</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">定制化培训方案</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-check text-secondary mr-2"></i>
+                            <span class="text-gray-700">培训效果评估</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 用户评价 -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">用户评价</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    听听我们的用户如何评价AI赋能型教学平台
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl shadow-md p-6 hover-scale">
+                    <div class="flex items-center mb-4">
+                        <img src="https://picsum.photos/id/1001/100/100" alt="张教授头像" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-semibold">张明教授</h4>
+                            <p class="text-sm text-gray-500">某大学计算机系</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        “AI 赋能型教学平台颠覆了我教《计算方法》的模式。AI 学情诊断系统就像‘透视镜’，精准揪出每个学生知识短板，让我备课、授课都能‘对症下药’，个性化教学轻松落地 。“
+                    </p>
+                    <div class="text-yellow-500">
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 hover-scale">
+                    <div class="flex items-center mb-4">
+                        <img src="https://picsum.photos/id/1005/100/100" alt="李同学头像" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-semibold">李同学</h4>
+                            <p class="text-sm text-gray-500">计算机专业大三学生</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        “平台的 AI 代码实践模块太香了！编程卡壳时，智能调试助手秒变‘debug 搭子’，报错根源一下就找到。还有个性化学习推荐，像会读心的学伴，推送的内容刚好补我知识缺口，学习效率直接拉满 ！”
+                    </p>
+                    <div class="text-yellow-500">
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star-half-o"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 hover-scale">
+                    <div class="flex items-center mb-4">
+                        <img src="https://picsum.photos/id/1012/100/100" alt="王工程师头像" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-semibold">王工程师</h4>
+                            <p class="text-sm text-gray-500">某科技公司</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        “用这平台给新员工做计算方法培训，简直找对‘神器’了！AI 作业批改 + 智能评价，省去大把人工阅卷时间，还能清晰统计员工学习漏洞，培训效果看得见，新人上手速度都变快了 。”
+                    </p>
+                    <div class="text-yellow-500">
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 常见问题 -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">常见问题</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    了解关于我们平台的更多信息
+                </p>
+            </div>
+            
+            <div class="max-w-3xl mx-auto">
+                <div class="space-y-6">
+                    <div class="bg-gray-50 rounded-xl overflow-hidden">
+                        <button class="faq-toggle w-full flex justify-between items-center p-6 text-left focus:outline-none">
+                            <span class="font-semibold text-lg">这个平台支持哪些编程语言？</span>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-6 pb-6">
+                            <p class="text-gray-600">
+                                我们的平台目前支持Python、MATLAB和C++三种编程语言。这些都是计算方法教学中常用的语言，我们会根据用户需求不断扩展支持的编程语言。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl overflow-hidden">
+                        <button class="faq-toggle w-full flex justify-between items-center p-6 text-left focus:outline-none">
+                            <span class="font-semibold text-lg">教师如何使用这个平台进行教学？</span>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-6 pb-6">
+                            <p class="text-gray-600">
+                                教师可以通过平台上传课程资料、布置作业、查看学生学习进度和学情分析报告。平台提供丰富的教学工具，包括在线测试、互动讨论区等，帮助教师更高效地进行教学。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl overflow-hidden">
+                        <button class="faq-toggle w-full flex justify-between items-center p-6 text-left focus:outline-none">
+                            <span class="font-semibold text-lg">学生需要具备什么基础才能使用平台？</span>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-6 pb-6">
+                            <p class="text-gray-600">
+                                平台适合不同基础的学生使用。对于初学者，我们提供基础知识教程和入门练习；对于有一定基础的学生，可以直接参与进阶练习和项目实践。AI系统会根据学生的实际情况提供个性化的学习路径。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl overflow-hidden">
+                        <button class="faq-toggle w-full flex justify-between items-center p-6 text-left focus:outline-none">
+                            <span class="font-semibold text-lg">平台的AI系统是如何工作的？</span>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-6 pb-6">
+                            <p class="text-gray-600">
+                                我们的AI系统基于深度学习技术，通过分析学生的学习行为、作业完成情况、测试成绩等多源数据，构建学生知识图谱，识别学生的知识掌握情况和学习难点，然后提供个性化的学习建议和资源推荐。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl overflow-hidden">
+                        <button class="faq-toggle w-full flex justify-between items-center p-6 text-left focus:outline-none">
+                            <span class="font-semibold text-lg">如何获取平台的使用权限？</span>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-6 pb-6">
+                            <p class="text-gray-600">
+                                学校或教育机构可以通过我们的官方网站申请团体账号，获取平台的使用权限。个人用户也可以注册个人账户，选择适合的订阅计划使用平台的部分或全部功能。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系我们 -->
+    <section id="about" class="py-20 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">联系我们</h2>
+                    <p class="text-lg text-gray-600 mb-8">
+                        如果你对我们的AI赋能型教学平台感兴趣，或者有任何疑问，欢迎随时联系我们。我们的团队将竭诚为你提供帮助和支持。
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mr-4">
+                                <i class="fa fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg">邮箱</h4>
+                                <p class="text-gray-600">tykjdx@tyust.edu.cn</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mr-4">
+                                <i class="fa fa-phone"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg">电话</h4>
+                                <p class="text-gray-600">+86 186 3579 3788</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mr-4">
+                                <i class="fa fa-map-marker"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg">地址</h4>
+                                <p class="text-gray-600">山西省太原市万柏林区窊流路 66 号</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10">
+                        <h4 class="font-semibold text-lg mb-4">关注我们</h4>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-custom">
+                                <i class="fa fa-weixin"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-custom">
+                                <i class="fa fa-weibo"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-custom">
+                                <i class="fa fa-github"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-custom">
+                                <i class="fa fa-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <h3 class="text-xl font-bold mb-6">发送消息</h3>
+                    <form>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                                <input type="text" id="name" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom" placeholder="请输入您的姓名">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+                                <input type="email" id="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom" placeholder="请输入您的邮箱">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">主题</label>
+                            <input type="text" id="subject" name="subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom" placeholder="请输入消息主题">
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="message" class="block text-sm font-medium text-gray-700 mb-1">消息内容</label>
+                            <textarea id="message" name="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom" placeholder="请输入您的消息内容"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom shadow-lg shadow-primary/20">
+                            发送消息
+                            <i class="fa fa-paper-plane ml-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white mr-3">
+                            <i class="fa fa-calculator text-xl"></i>
+                        </div>
+                        <span class="text-xl font-bold">AI<span class="text-primary">计算方法</span></span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        我们致力于为计算方法教学提供AI赋能解决方案，帮助教师提升教学效果，帮助学生提高学习效率。
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-primary transition-custom">
+                            <i class="fa fa-weixin"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-primary transition-custom">
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-primary transition-custom">
+                            <i class="fa fa-github"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-primary transition-custom">
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-400 hover:text-white transition-custom">首页</a></li>
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition-custom">核心模块</a></li>
+                        <li><a href="#demo" class="text-gray-400 hover:text-white transition-custom">功能演示</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-white transition-custom">关于我们</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">资源中心</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-custom">使用教程</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-custom">API文档</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-custom">教学案例</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-custom">常见问题</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">联系我们</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope text-primary mr-2"></i>
+                            <a href="mailto:tykjdx@tyust.edu.cn" class="text-gray-400 hover:text-white transition-custom">mailto:tykjdx@tyust.edu.cn</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-phone text-primary mr-2"></i>
+                            <a href="tel:+8618635793788" class="text-gray-400 hover:text-white transition-custom">+86 186 3579 3788</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-map-marker text-primary mr-2"></i>
+                            <span class="text-gray-400">山西省太原市万柏林区窊流路 66 号</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/10 text-center text-gray-400 text-sm">
+                <p>&copy; 2025 AI计算方法教学平台. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 模态框 -->
+    <div id="aiDiagnosisModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-dark">AI学情诊断</h3>
+                    <button onclick="hideModal('aiDiagnosisModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">学习行为分析</h4>
+                        <p class="text-gray-700 mb-4">
+                            借助大数据技术，收集学生在课程学习过程中的各项行为数据，如视频观看时长、暂停次数、知识点重复学习频率、在线测试答题时间等。通过对这些数据的深度挖掘和分析，精准把握学生的学习习惯、专注度和学习节奏，判断学生对不同知识点的接受程度和学习态度。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">多维度数据采集，全面了解学习行为</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">深度学习算法分析，挖掘行为背后的学习状态</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">实时反馈机制，及时调整学习策略</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/180/600/400" alt="学习行为分析" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <img src="https://picsum.photos/id/20/600/400" alt="知识图谱构建" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">知识图谱构建</h4>
+                        <p class="text-gray-700 mb-4">
+                            依据课程知识点体系，运用人工智能算法构建详细的知识图谱。将各个知识点之间的逻辑关系、难易程度、应用场景等进行可视化呈现。通过学生的学习表现和答题情况，动态标注学生在知识图谱上的掌握节点，清晰定位学生的知识薄弱区域和知识盲点。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">结构化知识体系，清晰展示知识点关联</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">动态更新机制，根据学习进度实时调整</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">薄弱环节高亮显示，精准定位学习难点</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">个性化学习推荐</h4>
+                        <p class="text-gray-700 mb-4">
+                            基于学习行为分析结果和知识图谱，为每位学生量身定制个性化学习路径。针对学生未掌握或掌握不牢的知识点，推送匹配的学习资源，如讲解视频、拓展阅读材料、专项练习题等。同时，根据学生的学习进度和能力，动态调整学习内容的难度和推送频率，实现因材施教。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">基于AI的个性化推荐算法，精准匹配学习需求</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">多模态学习资源，满足不同学习风格</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">自适应学习路径，根据学习效果动态调整</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/3/600/400" alt="个性化学习推荐" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end">
+                <button onclick="hideModal('aiDiagnosisModal')" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aiCodePracticeModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-dark">AI代码实践</h3>
+                    <button onclick="hideModal('aiCodePracticeModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">在线编码环境</h4>
+                        <p class="text-gray-700 mb-4">
+                            提供基于云端的在线编程平台，无需学生额外安装复杂的编程软件，可直接在浏览器中访问使用。支持多种主流编程语言，如 Python、Matlab等，具备代码自动补全、语法高亮显示等功能，为学生营造便捷、高效的编程实践环境。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">跨平台兼容，随时随地编程练习</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">多语言支持，满足不同课程需求</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">代码自动保存，防止意外丢失</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/160/600/400" alt="在线编码环境" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <img src="https://picsum.photos/id/1/600/400" alt="实时代码检查" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">实时代码检查</h4>
+                        <p class="text-gray-700 mb-4">
+                            在学生编写代码过程中，后台智能检测程序实时运行，依据编程语言的语法规则和最佳实践标准，即时识别代码中的语法错误、拼写错误、格式问题等。并以直观的方式在代码编辑区域进行标注提示，帮助学生及时发现并修正问题。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">实时语法检查，即时反馈编程错误</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">代码风格检测，培养良好编程习惯</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">错误定位与修复建议，提高编程效率</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">智能调试助手</h4>
+                        <p class="text-gray-700 mb-4">
+                            当学生运行代码出现错误或未达到预期结果时，智能调试助手自动介入。它能够分析代码执行过程中的变量值变化、函数调用顺序等，定位逻辑错误根源，并提供可能的解决方案和优化建议，引导学生逐步掌握调试技巧，提升代码调试能力。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">智能错误分析，快速定位问题根源</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">执行过程可视化，理解代码运行逻辑</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">解决方案推荐，提供多种修复思路</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/119/600/400" alt="智能调试助手" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end">
+                <button onclick="hideModal('aiCodePracticeModal')" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aiAssignmentGradingModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-dark">AI作业批改</h3>
+                    <button onclick="hideModal('aiAssignmentGradingModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">自动作业评分</h4>
+                        <p class="text-gray-700 mb-4">
+                            利用图像识别技术对学生提交的作业（包括纸质作业扫描件和电子文档）进行识别和解析，提取作业中的代码内容或解题步骤。通过预设的评分规则和算法模型，对作业进行自动打分，涵盖代码的正确性、完整性、规范性以及解题思路的准确性等多个维度。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">多格式支持，包括纸质扫描和电子文档</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">多维度评分，全面评估作业质量</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">快速反馈，即时获取作业成绩</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/16/600/400" alt="自动作业评分" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <img src="https://picsum.photos/id/180/600/400" alt="代码质量分析" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">代码质量分析</h4>
+                        <p class="text-gray-700 mb-4">
+                            针对编程作业中的代码，深入分析代码的结构、可读性、可维护性、性能等方面。评估代码是否遵循设计模式和编程规范，是否存在冗余代码、潜在的安全漏洞等问题。以详细的报告形式呈现代码质量评估结果，帮助学生认识到代码中的不足并学习优化方法。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">深度代码分析，评估多个维度的代码质量</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">遵循最佳实践，培养良好编程习惯</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">优化建议，提供具体的代码改进方案</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">个性化练习推荐</h4>
+                        <p class="text-gray-700 mb-4">
+                            根据作业批改结果，分析学生在知识点和技能点上的薄弱环节。为学生精准推送针对性的个性化练习题目，这些题目围绕学生未掌握的知识点展开，难度逐步递增，旨在帮助学生巩固知识、强化技能，实现学习的查缺补漏和能力提升。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">基于作业表现，精准定位知识薄弱点</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">个性化练习推荐，针对性提升薄弱环节</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">难度自适应，逐步提高解题能力</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/24/600/400" alt="个性化练习推荐" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end">
+                <button onclick="hideModal('aiAssignmentGradingModal')" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aiIntelligentEvaluationModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-dark">AI智能评价</h3>
+                    <button onclick="hideModal('aiIntelligentEvaluationModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">学习过程跟踪</h4>
+                        <p class="text-gray-700 mb-4">
+                            全方位、全过程记录学生在课程学习中的各类活动，包括课堂参与度（提问、回答问题、小组讨论表现等）、课后作业完成情况、在线测试成绩变化、学习资源使用频率等。形成学生专属的学习过程档案，为全面评价学生学习情况提供丰富的数据支撑。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">多维度数据采集，全面记录学习过程</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">时间序列分析，展示学习进度变化</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">学习行为可视化，直观呈现学习轨迹</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/177/600/400" alt="学习过程跟踪" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <img src="https://picsum.photos/id/26/600/400" alt="多维度评价" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">多维度评价</h4>
+                        <p class="text-gray-700 mb-4">
+                            摒弃单一的考试成绩评价方式，从知识掌握程度、实践操作能力、问题解决能力、学习态度、团队协作能力（如有小组作业）等多个维度对学生进行综合评价。运用模糊综合评价、层次分析等科学评价方法，结合人工智能算法，确保评价结果客观、公正、全面。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">多维度评价体系，全面评估学生能力</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">科学评价方法，确保评价结果客观公正</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">能力发展分析，展示学生成长轨迹</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3">教学决策支持</h4>
+                        <p class="text-gray-700 mb-4">
+                            为教师提供可视化的学生学习评价报告和班级整体学习情况分析。教师可以依据这些数据了解学生的学习进展、班级的教学效果，发现教学过程中存在的问题和学生群体的共性薄弱点。基于此，合理调整教学计划、优化教学方法、设计更具针对性的教学活动，提升教学质量。
+                        </p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">可视化报告，直观展示班级学习情况</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">薄弱点分析，定位教学改进方向</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span class="text-gray-700">教学建议生成，辅助教学决策</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/id/48/600/400" alt="教学决策支持" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end">
+                <button onclick="hideModal('aiIntelligentEvaluationModal')" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 完整报告模态框 -->
+    <div id="fullReportModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-3/4 max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">完整学情诊断报告</h2>
+                <button class="text-gray-600 hover:text-gray-800" onclick="hideModal('fullReportModal')">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- 学生信息 -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-8">
+                <div class="flex items-center">
+                    <img src="https://picsum.photos/id/1005/100/100" alt="学生头像" class="w-16 h-16 rounded-full mr-4">
+                    <div>
+                        <h3 class="text-xl font-semibold">南奇奇</h3>
+                        <p class="text-gray-600">学号: 202318080314 | 班级: 数据231803班 | 上次更新: 2025-06-24</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 总体评价 -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">总体评价</h3>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                    <p class="text-gray-700">
+                        <strong>AI 评价:</strong> 南奇奇同学在《计算方法》课程的学习中表现良好，对基本概念掌握扎实，特别是在常微分方程数值解方面表现突出。在插值与拟合、数值积分等章节存在一些薄弱环节，建议加强相关练习。总体而言，学习态度认真，具备较强的学习能力，有望在后续学习中取得更好的成绩。
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-primary">
+                        <h4 class="text-gray-500 text-sm font-medium mb-1">课程进度</h4>
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <p class="text-3xl font-bold">65%</p>
+                                <p class="text-gray-500 text-sm">已完成 13/20 章节</p>
+                            </div>
+                            <div class="text-primary">
+                                <i class="fa fa-arrow-up"></i>
+                                <span class="text-sm ml-1">5%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-secondary">
+                        <h4 class="text-gray-500 text-sm font-medium mb-1">作业完成率</h4>
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <p class="text-3xl font-bold">72%</p>
+                                <p class="text-gray-500 text-sm">已完成 18/25 作业</p>
+                            </div>
+                            <div class="text-secondary">
+                                <i class="fa fa-arrow-up"></i>
+                                <span class="text-sm ml-1">8%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-accent">
+                        <h4 class="text-gray-500 text-sm font-medium mb-1">考试平均分</h4>
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <p class="text-3xl font-bold">85</p>
+                                <p class="text-gray-500 text-sm">班级排名: 14/45</p>
+                            </div>
+                            <div class="text-accent">
+                                <i class="fa fa-arrow-up"></i>
+                                <span class="text-sm ml-1">3分</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 知识掌握情况 -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">知识掌握情况</h3>
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="h-64 mb-6">
+                        <canvas id="modalMasteryChart"></canvas>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <h4 class="font-medium mb-3">优势知识点</h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                        <i class="fa fa-check"></i>
+                                    </div>
+                                    <span>常微分方程数值解 (91%)</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                        <i class="fa fa-check"></i>
+                                    </div>
+                                    <span>线性方程组 (85%)</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                        <i class="fa fa-check"></i>
+                                    </div>
+                                    <span>非线性方程组 (83%)</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium mb-3">薄弱知识点</h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3">
+                                        <i class="fa fa-exclamation"></i>
+                                    </div>
+                                    <span>数值积分 (68%)</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3">
+                                        <i class="fa fa-exclamation"></i>
+                                    </div>
+                                    <span>插值与拟合 (72%)</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3">
+                                        <i class="fa fa-exclamation"></i>
+                                    </div>
+                                    <span>函数逼近 (75%)</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 学习行为分析 -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">学习行为分析</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h4 class="font-medium mb-3">每周学习时长</h4>
+                        <div class="h-64">
+                            <canvas id="modalStudyTimeChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h4 class="font-medium mb-3">做题正确率</h4>
+                        <div class="h-64">
+                            <canvas id="modalAccuracyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 推荐学习资源 -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">推荐学习资源</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm p-4 hover-scale">
+                        <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-3">
+                            <i class="fa fa-video-camera text-xl"></i>
+                        </div>
+                        <h4 class="font-medium mb-2">拉格朗日插值法详解</h4>
+                        <p class="text-gray-600 text-sm mb-3">本视频详细讲解了拉格朗日插值法的原理和应用，通过实例演示了如何构造拉格朗日插值多项式。</p>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fa fa-clock-o mr-1"></i> 15分钟
+                            <span class="mx-2">•</span>
+                            <i class="fa fa-play-circle mr-1"></i> 基础
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-4 hover-scale">
+                        <div class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary mb-3">
+                            <i class="fa fa-file-text-o text-xl"></i>
+                        </div>
+                        <h4 class="font-medium mb-2">牛顿-柯特斯公式推导</h4>
+                        <p class="text-gray-600 text-sm mb-3">本文档深入推导了牛顿-柯特斯公式，分析了不同阶数公式的误差，并讨论了其适用场景。</p>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fa fa-file-text-o mr-1"></i> 10页
+                            <span class="mx-2">•</span>
+                            <i class="fa fa-book mr-1"></i> 中级
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-4 hover-scale">
+                        <div class="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center text-accent mb-3">
+                            <i class="fa fa-code text-xl"></i>
+                        </div>
+                        <h4 class="font-medium mb-2">高斯积分法编程实践</h4>
+                        <p class="text-gray-600 text-sm mb-3">本练习提供了高斯积分法的编程实现，通过Python代码演示了如何使用高斯积分法计算定积分。</p>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fa fa-code mr-1"></i> 互动练习
+                            <span class="mx-2">•</span>
+                            <i class="fa fa-star mr-1"></i> 高级
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 改进建议 -->
+            <div>
+                <h3 class="text-xl font-semibold mb-4">AI改进建议</h3>
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <i class="fa fa-1"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-medium">加强薄弱环节学习</h4>
+                                <p class="text-gray-600">针对插值与拟合、数值积分等薄弱章节，建议观看推荐视频并完成相关练习，加深对基本概念的理解。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <i class="fa fa-2"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-medium">提高编程实践能力</h4>
+                                <p class="text-gray-600">计算方法是一门实践性很强的课程，建议增加编程练习时间，特别是高斯积分法、龙格-库塔法等复杂算法的实现。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <i class="fa fa-3"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-medium">建立知识关联</h4>
+                                <p class="text-gray-600">注意不同章节之间的联系，例如插值法与数值积分、线性方程组与迭代法之间的关联，形成完整的知识体系。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end">
+                <button class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg mr-3" onclick="hideModal('fullReportModal')">
+                    关闭
+                </button>
+                <button class="px-6 py-2 bg-primary text-white rounded-lg flex items-center">
+                    <i class="fa fa-download mr-2"></i>下载报告
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-white', 'shadow-md');
+                navbar.classList.remove('bg-white/90');
+            } else {
+                navbar.classList.remove('bg-white', 'shadow-md');
+                navbar.classList.add('bg-white/90');
+            }
+        });
+        
+        // 移动端菜单切换
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenuButton.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+            } else {
+                mobileMenuButton.innerHTML = '<i class="fa fa-times text-xl"></i>';
+            }
+        });
+
+        // 模态框控制
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // 关闭移动端菜单
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        mobileMenuButton.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+                    }
+                }
+            });
+        });
+        
+        // FAQ 切换
+        document.querySelectorAll('.faq-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const content = toggle.nextElementSibling;
+                const icon = toggle.querySelector('i');
+                
+                content.classList.toggle('hidden');
+                if (!content.classList.contains('hidden')) {
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    icon.style.transform = 'rotate(0)';
+                }
+            });
+        });
+
+        // 模态框中图表的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 知识掌握情况图表
+            const masteryCtx = document.getElementById('modalMasteryChart');
+            if (masteryCtx) {
+                new Chart(masteryCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['线性方程组', '非线性方程组', '插值与拟合', '函数逼近', '曲线拟合', '数值积分', '常微分方程数值解'],
+                        datasets: [{
+                            label: '当前掌握程度',
+                            data: [85, 83, 72, 75, 78, 68, 91],
+                            backgroundColor: 'rgba(22, 93, 255, 0.2)',
+                            borderColor: 'rgba(22, 93, 255, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(22, 93, 255, 1)'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    stepSize: 20
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 每周学习时长图表
+            const studyTimeCtx = document.getElementById('modalStudyTimeChart');
+            if (studyTimeCtx) {
+                new Chart(studyTimeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                        datasets: [{
+                            label: '学习时长(小时)',
+                            data: [2.5, 3.0, 1.5, 2.0, 2.5, 4.0, 3.5],
+                            backgroundColor: [
+                                'rgba(22, 93, 255, 0.7)',
+                                'rgba(22, 93, 255, 0.7)',
+                                'rgba(22, 93, 255, 0.7)',
+                                'rgba(22, 93, 255, 0.7)',
+                                'rgba(22, 93, 255, 0.7)',
+                                'rgba(22, 93, 255, 0.7)',
+                                'rgba(22, 93, 255, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(22, 93, 255, 1)',
+                                'rgba(22, 93, 255, 1)',
+                                'rgba(22, 93, 255, 1)',
+                                'rgba(22, 93, 255, 1)',
+                                'rgba(22, 93, 255, 1)',
+                                'rgba(22, 93, 255, 1)',
+                                'rgba(22, 93, 255, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 做题正确率图表
+            const accuracyCtx = document.getElementById('modalAccuracyChart');
+            if (accuracyCtx) {
+                new Chart(accuracyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周'],
+                        datasets: [{
+                            label: '编程题正确率',
+                            data: [65, 68, 72, 75, 78, 80, 85],
+                            backgroundColor: 'rgba(54, 211, 153, 0.2)',
+                            borderColor: 'rgba(54, 211, 153, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        }, {
+                            label: '理论题正确率',
+                            data: [78, 80, 79, 82, 83, 85, 87],
+                            backgroundColor: 'rgba(124, 58, 237, 0.2)',
+                            borderColor: 'rgba(124, 58, 237, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    
+        
+        // 图表初始化
+        window.addEventListener('load', () => {
+            // 知识掌握情况图表
+            const masteryCtx = document.getElementById('masteryChart').getContext('2d');
+            new Chart(masteryCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['误差分析', '插值法', '数值积分', '方程求根', '线性方程组', '常微分方程'],
+                    datasets: [{
+                        label: '当前掌握程度',
+                        data: [75, 60, 65, 85, 90, 80],
+                        backgroundColor: 'rgba(22, 93, 255, 0.2)',
+                        borderColor: 'rgba(22, 93, 255, 1)',
+                        pointBackgroundColor: 'rgba(22, 93, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(22, 93, 255, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+            
+            // 学习进度图表
+            const progressCtx = document.getElementById('progressChart').getContext('2d');
+            new Chart(progressCtx, {
+                type: 'line',
+                data: {
+                    labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周'],
+                    datasets: [{
+                        label: '课程完成度',
+                        data: [10, 25, 40, 55, 70, 85],
+                        borderColor: 'rgba(54, 211, 153, 1)',
+                        backgroundColor: 'rgba(54, 211, 153, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+    
+
+

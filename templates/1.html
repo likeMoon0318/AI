@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI计算方法教学平台 - 立即体验</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 引入 Ace Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.10.0/ace.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.10.0/mode-python.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        accent: '#7C3AED',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-custom {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .hover-scale {
+                transition: transform 0.3s ease;
+            }
+            .hover-scale:hover {
+                transform: scale(1.03);
+            }
+            .code-editor {
+                background-color: #1E1E1E;
+                color: #D4D4D4;
+                font-family: Consolas, Monaco, 'Andale Mono', monospace;
+                border-radius: 0.5rem;
+                overflow: hidden;
+            }
+            .editor-header {
+                background-color: #252526;
+                padding: 0.5rem 1rem;
+                color: #9E9E9E;
+                border-bottom: 1px solid #333;
+            }
+            .editor-content {
+                padding: 1rem;
+                font-size: 0.875rem;
+                line-height: 1.5;
+                overflow-x: auto;
+            }
+            .keyword {
+                color: #569CD6;
+            }
+            .string {
+                color: #CE9178;
+            }
+            .comment {
+                color: #6A9955;
+            }
+            .number {
+                color: #B5CEA8;
+            }
+            .function {
+                color: #DCDCAA;
+            }
+            .punctuation {
+                color: #D4D4D4;
+            }
+            .variable {
+                color: #9CDCFE;
+            }
+        }
+    </style>
+
+    <style>
+        /* 悬浮AI助手样式 */
+        #ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+        }
+
+        #ai-assistant-header {
+            background-color: #165DFF;
+            color: white;
+            padding: 10px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            cursor: pointer;
+        }
+
+        #ai-assistant-content {
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        #ai-assistant-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #ai-assistant-send {
+            margin: 0 10px 10px 10px;
+            padding: 10px;
+            background-color: #165DFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="font-inter bg-light text-dark antialiased">
+    <!-- 导航栏 -->
+    <header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300 bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white mr-3">
+                            <i class="fa fa-calculator text-xl"></i>
+                        </div>
+                        <span class="text-xl font-bold text-primary">AI<span class="text-dark">计算方法</span></span>
+                    </a>
+                    
+                    <nav class="hidden md:ml-10 md:flex space-x-8">
+                        <a href="#" class="text-dark hover:text-primary font-medium transition-custom">首页</a>
+                        <a href="#" class="text-dark hover:text-primary font-medium transition-custom">核心模块</a>
+                        <a href="#" class="text-dark hover:text-primary font-medium transition-custom">功能演示</a>
+                        <a href="#" class="text-dark hover:text-primary font-medium transition-custom">关于我们</a>
+                    </nav>
+                </div>
+                
+                <div class="flex items-center">
+                    {% if 'email' in session %}
+                        <span class="text-gray-600 mr-3">{{ session['email'] }}</span>
+                        <a href="{{ url_for('logout') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom">
+                            <i class="fa fa-sign-out mr-2"></i>退出登录
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom mr-3">
+                            <i class="fa fa-user-circle mr-2"></i>登录
+                        </a>
+                        <a href="{{ url_for('register') }}" class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent/90 transition-custom">
+                            <i class="fa fa-user-plus mr-2"></i>注册
+                        </a>
+                    {% endif %}
+                    
+                    <button id="mobile-menu-button" class="md:hidden flex items-center justify-center p-2 rounded-md text-dark hover:text-primary hover:bg-gray-100 transition-custom">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white shadow-lg absolute w-full">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-primary bg-primary/10">首页</a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50">核心模块</a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50">功能演示</a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50">关于我们</a>
+                {% if 'email' in session %}
+                    <span class="block px-3 py-2 text-base font-medium text-gray-600">{{ session['email'] }}</span>
+                    <a href="{{ url_for('logout') }}" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-primary/90 transition-custom">
+                        <i class="fa fa-sign-out mr-2"></i>退出登录
+                    </a>
+                {% else %}
+                    <div class="flex space-x-2 mt-4 px-3">
+                        <a href="{{ url_for('login') }}" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom">
+                            <i class="fa fa-user-circle mr-2"></i>登录
+                        </a>
+                        <a href="{{ url_for('register') }}" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent/90 transition-custom">
+                            <i class="fa fa-user-plus mr-2"></i>注册
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- 侧边栏和主内容 -->
+    <div class="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- 侧边栏 -->
+                <div class="lg:w-1/4">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-primary text-white p-4">
+                            <h3 class="text-lg font-bold">课程章节</h3>
+                        </div>
+                        <div class="p-4" id="sidebar-chapters">
+                            <!-- 侧边栏章节将通过JS动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-accent text-white p-4">
+                            <h3 class="text-lg font-bold">AI学情分析</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium">总体进度</span>
+                                    <span class="text-sm font-medium">65%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+                                        <i class="fa fa-code"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">代码实践</p>
+                                        <p class="text-xs text-gray-500">良好 (85%)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary mr-3">
+                                        <i class="fa fa-question-circle"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">课堂小练</p>
+                                        <p class="text-xs text-gray-500">中等 (68%)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent mr-3">
+                                        <i class="fa fa-file-text-o"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">作业完成</p>
+                                        <p class="text-xs text-gray-500">需努力 (52%)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 主内容（仅保留一套框架） -->
+                <div class="lg:w-3/4" id="main-content">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-primary text-white p-6" id="section-header">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white mr-4">
+                                    <i class="fa fa-cubes text-xl" id="section-icon"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-2xl font-bold" id="section-title">请选择章节</h2>
+                                    <p class="text-white/80" id="section-subtitle"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <!-- 视频播放区 -->
+                            <div class="flex items-center mb-6">
+                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+                                    <i class="fa fa-play-circle"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold">知识点视频讲解</h3>
+                            </div>
+                            
+                            <div class="bg-gray-100 rounded-lg p-4 mb-6" id="video-section">
+                                <div class="aspect-video bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                                    <video width="100%" height="auto" controls id="section-video">
+                                        <source src="" type="video/mp4">
+                                        请选择章节以显示视频内容。
+                                    </video>
+                                </div>
+                                <div class="space-y-2" id="key-points">
+                                    <!-- 重难点内容将通过JS动态生成 -->
+                                </div>
+                            </div>
+                            
+                            <!-- 代码实践区 -->
+                            <div class="flex items-center mb-6">
+                                <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary mr-3">
+                                    <i class="fa fa-code"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold">代码实践</h3>
+                            </div>
+                            
+                            <div class="bg-gray-100 rounded-lg p-4 mb-6" id="code-section">
+                                <div class="flex items-center justify-between mb-4" id="code-tabs">
+                                    <!-- 代码语言切换按钮将通过JS动态生成 -->
+                                </div>
+                                
+                                <div class="code-editor" id="code-editor">
+                                    <div class="editor-header">
+                                        <div class="flex items-center">
+                                            <div class="flex space-x-1 mr-4">
+                                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                            </div>
+                                            <span id="code-filename">请选择章节以显示代码</span>
+                                        </div>
+                                    </div>
+                                    <div id="editor" style="height: 300px;"></div>
+                                </div>
+                                
+                                <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4" id="ai-tip">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fa fa-lightbulb-o text-yellow-500"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-yellow-700">
+                                                <strong>AI 建议:</strong> 请选择章节以获取针对性建议
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 新增：执行结果容器 -->
+                            <div id="execution-result" class="mt-6 hidden"></div>
+                            
+                            <!-- 按钮组 -->
+                            <div class="flex space-x-4 mt-4">
+                                <button class="px-6 py-2 bg-accent text-white rounded-lg flex items-center" id="run-code">
+                                    <i class="fa fa-play mr-2"></i>运行代码
+                                </button>
+                                <button class="px-6 py-2 bg-blue-500 text-white rounded-lg flex items-center" id="ai-write">
+                                    <i class="fa fa-robot mr-2"></i>AI帮写
+                                </button>
+                            </div>
+                            
+                            <!-- 课堂小练 -->
+                            <div class="flex items-center mb-6">
+                                <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent mr-3">
+                                    <i class="fa fa-pencil-square-o"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold">课堂小练</h3>
+                            </div>
+                            
+                            <div class="bg-gray-100 rounded-lg p-4 mb-6" id="practice-section">
+                                <div id="practice-questions">
+                                    <!-- 练习题将通过JS动态生成 -->
+                                </div>
+                                
+                                <button class="mt-4 px-6 py-2 bg-accent text-white rounded-lg flex items-center" id="submit-practice">
+                                    <i class="fa fa-check mr-2"></i>提交答案
+                                </button>
+                            </div>
+                            
+                            <!-- 作业 -->
+                            <div class="flex items-center mb-6">
+                                <div class="w-10 h-10 rounded-full bg-dark/10 flex items-center justify-center text-dark mr-3">
+                                    <i class="fa fa-file-text-o"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold">课后作业</h3>
+                            </div>
+
+                            <div class="bg-gray-100 rounded-lg p-4" id="homework-section">
+                                <div id="homework-questions">
+                                    <!-- 作业题将通过JS动态生成 -->
+                                </div>
+
+                                <button class="mt-4 px-6 py-2 bg-dark text-white rounded-lg flex items-center" id="submit-homework">
+                                    <i class="fa fa-upload mr-2"></i>提交作业
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 悬浮AI助手 -->
+    <div id="ai-assistant">
+        <div id="ai-assistant-header">AI助手</div>
+        <div id="ai-assistant-content"></div>
+        <input type="text" id="ai-assistant-input" placeholder="输入你的问题">
+        <button id="ai-assistant-send">发送</button>
+    </div>
+
+    <script>
+        // 移动端菜单切换
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-white', 'shadow-md');
+                navbar.classList.remove('bg-white/90');
+            } else {
+                navbar.classList.remove('bg-white', 'shadow-md');
+                navbar.classList.add('bg-white/90');
+            }
+        });
+        let courseData = {};
+
+        // 从后端获取课程数据
+        async function fetchCourseData() {
+            try {
+                const response = await fetch('/get_course_data');
+                console.log(response)
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
+                }
+                courseData = await response.json();
+
+                // 数据获取成功后，初始化页面
+                renderSidebar();
+                if (Object.keys(courseData).length > 0) {
+                    loadSection(Object.keys(courseData)[0]);
+                }
+            } catch (error) {
+                console.error('获取课程数据失败:', error);
+            }
+        }
+
+        // 动态生成侧边栏
+        function renderSidebar() {
+            const sidebar = document.getElementById('sidebar-chapters');
+            sidebar.innerHTML = '';
+
+            // 按 chapter 字段分组
+            const chapters = {};
+            Object.keys(courseData).forEach(key => {
+                const section = courseData[key];
+                const chapter = section.chapter;
+                if (!chapters[chapter]) {
+                    chapters[chapter] = [];
+                }
+                chapters[chapter].push(section);
+            });
+
+            // 对章节标题进行排序
+            const sortedChapterTitles = Object.keys(chapters).sort();
+
+            // 生成侧边栏HTML
+            sortedChapterTitles.forEach(chapterTitle => {
+                const sectionList = chapters[chapterTitle];
+                
+                // 创建章节组
+                const chapterGroup = document.createElement('div');
+                chapterGroup.className = 'mb-4';
+                
+                // 章节标题
+                const chapterHeader = document.createElement('div');
+                chapterHeader.className = 'p-3 bg-primary/5 rounded-lg mb-2';
+                chapterHeader.innerHTML = `
+                    <h3 class="font-bold text-primary">${chapterTitle}</h3>
+                `;
+                chapterGroup.appendChild(chapterHeader);
+                
+                // 章节内容列表
+                const chapterList = document.createElement('ul');
+                chapterList.className = 'space-y-1';
+                
+                // 对子章节进行排序
+                const sortedSubChapters = sectionList.sort((a, b) => {
+                    return a.title.localeCompare(b.title);
+                });
+                
+                sortedSubChapters.forEach(section => {
+                    const listItem = document.createElement('li');
+                    const itemLink = document.createElement('a');
+                    itemLink.href = `#${section.id}`;
+                    itemLink.className = 'flex items-center p-3 rounded-lg hover:bg-gray-100 transition-custom';
+                    itemLink.innerHTML = `
+                        <i class="fa fa-file-text-o mr-3"></i>
+                        ${section.title}
+                    `;
+                    itemLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        loadSection(section.id);
+                    });
+                    listItem.appendChild(itemLink);
+                    chapterList.appendChild(listItem);
+                });
+                
+                chapterGroup.appendChild(chapterList);
+                sidebar.appendChild(chapterGroup);
+            });
+        }
+
+        // 加载章节内容
+        function loadSection(sectionId) {
+            const section = courseData[sectionId];
+            if (!section) return;
+            
+            // 更新头部
+            document.getElementById('section-title').textContent = section.title;
+            document.getElementById('section-subtitle').textContent = section.subtitle;
+            document.getElementById('section-icon').className = `fa ${section.icon} text-xl`;
+            
+            // 更新视频
+            document.getElementById('section-video').src = section.video;
+            
+            // 更新重难点
+            const keyPointsContainer = document.getElementById('key-points');
+            keyPointsContainer.innerHTML = '';
+            section.keyPoints.forEach(point => {
+                const iconClass = point.type === "primary" ? "fa-star text-yellow-400" : "fa-exclamation-circle text-red-500";
+                keyPointsContainer.innerHTML += `
+                    <div class="flex items-start">
+                        <i class="${iconClass} mt-1 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium">${point.title}</h4>
+                            <p class="text-gray-600">${point.content}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // 更新代码文件名和AI建议
+            const code = section.code;
+            document.getElementById('code-filename').textContent = code.filename;
+            document.getElementById('ai-tip').querySelector('p').textContent = `<strong>AI 建议:</strong> ${code.tip}`;
+
+            // 更新课堂小练
+            const practice = section.practice;
+            const practiceQuestions = document.getElementById('practice-questions');
+            practiceQuestions.innerHTML = `
+                <h4 class="font-medium mb-2">${practice.title}</h4>
+                <p class="text-gray-600 mb-3">${practice.content}</p>
+            `;
+            practice.questions.forEach((q, index) => {
+                practiceQuestions.innerHTML += `
+                    <div class="mb-4">
+                        <textarea class="w-full h-24 border border-gray-300 p-2 rounded-lg" placeholder="${q.placeholder}"></textarea>
+                    </div>
+                `;
+            });
+            
+            // 更新作业
+            const homework = section.homework;
+            const homeworkQuestions = document.getElementById('homework-questions');
+            homeworkQuestions.innerHTML = `
+                <h4 class="font-medium mb-2">${homework.title}</h4>
+                <p class="text-gray-600 mb-3">${homework.content}</p>
+            `;
+            homework.questions.forEach((q, index) => {
+                homeworkQuestions.innerHTML += `
+                    <div class="mb-4">
+                        <textarea class="w-full h-40 border border-gray-300 p-2 rounded-lg" placeholder="${q.placeholder}"></textarea>
+                    </div>
+                `;
+            });
+            
+            // 滚动到顶部
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 初始化 Ace Editor
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.getSession().setMode("ace/mode/python");
+
+        // AI帮写按钮点击事件
+        document.getElementById('ai-write').addEventListener('click', () => {
+            const sectionId = Object.keys(courseData)[0];
+            const section = courseData[sectionId];
+            if (section) {
+                const code = section.code;
+                editor.setValue(code.content);
+            }
+        });
+
+        // 运行代码按钮点击事件
+        document.getElementById('run-code').addEventListener('click', async () => {
+            const code = editor.getValue();
+            const button = document.getElementById('run-code');
+            const originalText = button.innerHTML;
+            
+            // 显示加载状态
+            button.disabled = true;
+            button.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>运行中...';
+            
+            try {
+                // 发送代码到后端执行
+                const response = await fetch('/api/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+                
+                const data = await response.json();
+                
+                // 显示执行结果（结果容器在按钮上方）
+                showResult(data.output, data.status === 'success' ? 'success' : 'error');
+                
+            } catch (error) {
+                showResult(`执行请求时出错: ${error.message}`, 'error');
+            } finally {
+                // 恢复按钮状态
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        });
+
+        // 提交作业按钮点击事件（修改后）
+        document.getElementById('submit-homework').addEventListener('click', async () => {
+            const homeworkQuestions = document.getElementById('homework-questions');
+            const textareas = homeworkQuestions.querySelectorAll('textarea');
+            const homework_content = Array.from(textareas)
+            .map(textarea => textarea.value)
+            .filter(val => val.trim() !== '')
+            .join('\n\n');
+
+            if (!homework_content) {
+                alert('请先填写作业内容');
+                return;
+            }
+
+            // 显示加载状态
+            const button = document.getElementById('submit-homework');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>批改中...';
+
+            try {
+                // 发送作业内容到后端
+                const response = await fetch('/submit_homework', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ homework_content })
+                });
+
+                const data = await response.json();
+
+                // 显示批改结果
+                if (data.status === 'success') {
+                    // 优化弹窗显示，支持多行内容
+                    const resultDialog = document.createElement('div');
+                    resultDialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+                    resultDialog.innerHTML = `
+                        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                            <h3 class="text-xl font-bold text-primary mb-4">作业批改结果</h3>
+                            <div class="mb-4">
+                                <p class="font-medium text-gray-700">批改：</p>
+                                <p class="mt-2 text-gray-600">${data.correction || '暂无详细批改'}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-700">建议：</p>
+                                <p class="mt-2 text-gray-600">${data.suggestion || '暂无优化建议'}</p>
+                            </div>
+                            <button class="mt-4 w-full bg-primary text-white py-2 rounded-lg" onclick="this.parentElement.parentElement.remove()">
+                                关闭
+                            </button>
+                        </div>
+                    `;
+                    document.body.appendChild(resultDialog);
+                } else {
+                    alert(`作业批改失败: ${data.message}`);
+                }
+            } catch (error) {
+                alert(`提交作业时出错: ${error.message}`);
+            } finally {
+                // 恢复按钮状态
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        });
+
+        // 显示执行结果
+        function showResult(output, type) {
+            const resultContainer = document.getElementById('execution-result');
+            resultContainer.className = `mt-6 p-4 rounded-lg ${type === 'success' ? 'bg-green-50 border-l-4 border-green-400' : 'bg-red-50 border-l-4 border-red-400'} animate-fadeIn`;
+            resultContainer.innerHTML = `
+                <div class="flex items-center mb-2">
+                    <i class="fa ${type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'} mr-2"></i>
+                    <strong>${type === 'success' ? '执行成功' : '执行错误'}</strong>
+                </div>
+                <pre class="text-sm font-mono overflow-x-auto">${output}</pre>
+            `;
+            resultContainer.classList.remove('hidden');
+            
+            // 自动滚动到结果区域
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // 30秒后自动移除结果
+            setTimeout(() => {
+                resultContainer.classList.add('hidden');
+            }, 30000);
+        }
+
+        // 课堂小练提交按钮事件
+        document.getElementById('submit-practice').addEventListener('click', async () => {
+            const practiceQuestions = document.getElementById('practice-questions');
+            const textareas = practiceQuestions.querySelectorAll('textarea');
+            const practice_content = Array.from(textareas)
+                .map(textarea => textarea.value)
+                .filter(val => val.trim() !== '')
+                .join('\n\n');
+            
+            if (!practice_content) {
+                alert('请先填写课堂小练答案');
+                return;
+            }
+            
+            // 显示加载状态
+            const button = document.getElementById('submit-practice');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>批改中...';
+            
+            try {
+                // 发送答案到后端
+                const response = await fetch('/api/grade-practice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ practice_content })
+                });
+                
+                const data = await response.json();
+                
+                // 显示批改结果
+                if (data.status === 'success') {
+                    showPracticeResult(data.correction, data.suggestion);
+                } else {
+                    alert(`批改失败: ${data.message}`);
+                }
+                
+            } catch (error) {
+                alert(`提交时出错: ${error.message}`);
+            } finally {
+                // 恢复按钮状态
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        });
+
+        // 显示课堂小练批改结果
+        function showPracticeResult(correction, suggestion) {
+            const resultDialog = document.createElement('div');
+            resultDialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+            resultDialog.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                    <h3 class="text-xl font-bold text-primary mb-4">课堂小练批改结果</h3>
+                    <div class="mb-4">
+                        <p class="font-medium text-gray-700">批改：</p>
+                        <p class="mt-2 text-gray-600">${correction || '暂无详细批改'}</p>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-700">建议：</p>
+                        <p class="mt-2 text-gray-600">${suggestion || '暂无优化建议'}</p>
+                    </div>
+                    <button class="mt-4 w-full bg-primary text-white py-2 rounded-lg" onclick="this.parentElement.parentElement.remove()">
+                        关闭
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(resultDialog);
+        }
+
+        // 处理AI助手的交互
+        const aiAssistantHeader = document.getElementById('ai-assistant-header');
+        const aiAssistantContent = document.getElementById('ai-assistant-content');
+        const aiAssistantInput = document.getElementById('ai-assistant-input');
+        const aiAssistantSend = document.getElementById('ai-assistant-send');
+
+        let isOpen = false;
+        aiAssistantHeader.addEventListener('click', () => {
+            if (isOpen) {
+                aiAssistantContent.style.display = 'none';
+                aiAssistantInput.style.display = 'none';
+                aiAssistantSend.style.display = 'none';
+            } else {
+                aiAssistantContent.style.display = 'block';
+                aiAssistantInput.style.display = 'block';
+                aiAssistantSend.style.display = 'block';
+            }
+            isOpen = !isOpen;
+        });
+
+        aiAssistantSend.addEventListener('click', async () => {
+            const question = aiAssistantInput.value;
+            if (question) {
+                // 显示用户的问题
+                aiAssistantContent.innerHTML += `<p><strong>你:</strong> ${question}</p>`;
+                aiAssistantInput.value = '';
+
+                try {
+                    // 发送问题到后端
+                    const response = await fetch('/api/ai-assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ question })
+                    });
+
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        // 显示AI的回复
+                        aiAssistantContent.innerHTML += `<p><strong>AI:</strong> ${data.answer}</p>`;
+                    } else {
+                        alert(`请求失败: ${data.message}`);
+                    }
+                } catch (error) {
+                    alert(`请求出错: ${error.message}`);
+                }
+            }
+        });
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+        
+            fetchCourseData();
+            
+            // 绑定提交按钮事件（实际项目中可添加提交逻辑）
+            document.getElementById('submit-practice').addEventListener('click', () => {
+                alert('课堂小练提交成功！');
+            });
+            
+            document.getElementById('submit-homework').addEventListener('click', () => {
+                alert('作业提交成功！');
+            });
+            
+            // 移动端菜单切换
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 导航栏滚动效果
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('shadow-md');
+                    navbar.classList.remove('shadow-sm');
+                } else {
+                    navbar.classList.remove('shadow-md');
+                    navbar.classList.add('shadow-sm');
+                }
+            });
+
+            // 添加CSS动画（通过style标签插入）
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out forwards;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
